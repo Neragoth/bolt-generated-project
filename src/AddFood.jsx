@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+  import localforage from 'localforage';
 
   function AddFood() {
     const [name, setName] = useState('');
@@ -6,11 +7,37 @@ import React, { useState } from 'react';
     const [fat, setFat] = useState('');
     const [carbs, setCarbs] = useState('');
     const [calories, setCalories] = useState('');
+    const [foodList, setFoodList] = useState([]);
 
-    const handleSubmit = (event) => {
+    useEffect(() => {
+      loadFoodList();
+    }, []);
+
+    const loadFoodList = async () => {
+      try {
+        const storedFoodList = await localforage.getItem('foodList');
+        if (storedFoodList) {
+          setFoodList(storedFoodList);
+        }
+      } catch (error) {
+        console.error('Error loading food list:', error);
+      }
+    };
+
+    const saveFoodList = async (updatedFoodList) => {
+      try {
+        await localforage.setItem('foodList', updatedFoodList);
+      } catch (error) {
+        console.error('Error saving food list:', error);
+      }
+    };
+
+    const handleSubmit = async (event) => {
       event.preventDefault();
-      // Ici, vous pouvez ajouter la logique pour enregistrer l'aliment
-      console.log('Aliment ajouté:', { name, protein, fat, carbs, calories });
+      const newFood = { name, protein, fat, carbs, calories };
+      const updatedFoodList = [...foodList, newFood];
+      setFoodList(updatedFoodList);
+      await saveFoodList(updatedFoodList);
       // Réinitialiser le formulaire
       setName('');
       setProtein('');
